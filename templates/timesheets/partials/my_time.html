@@ -1,0 +1,155 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold">{% trans "My Time" %}</h1>
+            <p class="text-sm mt-1 opacity-60">
+                {{ monday|date:"M d" }} - {{ sunday|date:"M d, Y" }}
+            </p>
+        </div>
+        <a class="btn btn-sm color-primary"
+           hx-get="{% url 'timesheets:time_entry_create' %}"
+           hx-target="#main-content-area"
+           hx-push-url="true">
+            {% icon "add-outline" %}
+            {% trans "New Entry" %}
+        </a>
+    </div>
+
+    <!-- Week navigation -->
+    <div class="flex items-center justify-between mb-4">
+        <a class="btn btn-ghost btn-sm"
+           hx-get="{% url 'timesheets:index' %}?week={{ week_offset|add:"-1" }}"
+           hx-target="#main-content-area"
+           hx-push-url="true">
+            {% icon "chevron-back-outline" %}
+            {% trans "Previous" %}
+        </a>
+        {% if week_offset != 0 %}
+        <a class="btn btn-ghost btn-sm"
+           hx-get="{% url 'timesheets:index' %}"
+           hx-target="#main-content-area"
+           hx-push-url="true">
+            {% trans "This Week" %}
+        </a>
+        {% endif %}
+        <a class="btn btn-ghost btn-sm"
+           hx-get="{% url 'timesheets:index' %}?week={{ week_offset|add:"1" }}"
+           hx-target="#main-content-area"
+           hx-push-url="true">
+            {% trans "Next" %}
+            {% icon "chevron-forward-outline" %}
+        </a>
+    </div>
+
+    <!-- Weekly summary cards -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                        {% icon "time-outline" css_class="text-xl text-primary" %}
+                    </div>
+                    <div>
+                        <div class="text-xs opacity-60">{% trans "Total Hours" %}</div>
+                        <div class="text-xl font-semibold">{{ total_hours }}h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-success/10 rounded-xl flex items-center justify-center">
+                        {% icon "cash-outline" css_class="text-xl text-success" %}
+                    </div>
+                    <div>
+                        <div class="text-xs opacity-60">{% trans "Billable" %}</div>
+                        <div class="text-xl font-semibold">{{ billable_hours }}h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center">
+                        {% icon "document-text-outline" css_class="text-xl text-warning" %}
+                    </div>
+                    <div>
+                        <div class="text-xs opacity-60">{% trans "Entries" %}</div>
+                        <div class="text-xl font-semibold">{{ entries_count }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly grid -->
+    <div class="grid grid-cols-1 md:grid-cols-7 gap-3">
+        {% for day in days %}
+        <div class="card {% if day.is_today %}ring-2 ring-primary{% endif %}">
+            <div class="card-header py-2 px-3">
+                <div class="flex items-center justify-between w-full">
+                    <span class="text-xs font-semibold {% if day.is_today %}text-primary{% else %}opacity-60{% endif %}">
+                        {{ day.date|date:"D" }}
+                    </span>
+                    <span class="text-xs opacity-60">{{ day.date|date:"d" }}</span>
+                </div>
+            </div>
+            <div class="card-body p-2">
+                {% if day.entries %}
+                    {% for entry in day.entries %}
+                    <div class="mb-2 p-2 rounded-lg bg-base-200/50 text-xs" x-data="{ showActions: false }" @mouseenter="showActions = true" @mouseleave="showActions = false">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-medium truncate">{{ entry.description|truncatechars:30 }}</span>
+                            <span class="badge badge-sm {% if entry.status == 'approved' %}color-success{% elif entry.status == 'submitted' %}color-warning{% elif entry.status == 'rejected' %}color-error{% else %}color-default{% endif %}">
+                                {{ entry.duration_minutes }}m
+                            </span>
+                        </div>
+                        {% if entry.project_name %}
+                        <div class="opacity-60 truncate">{{ entry.project_name }}</div>
+                        {% endif %}
+                        {% if entry.is_billable %}
+                        <span class="badge badge-sm color-success mt-1">{% trans "Billable" %}</span>
+                        {% endif %}
+                        <div x-show="showActions" x-cloak class="flex gap-1 mt-1">
+                            {% if entry.status == 'draft' %}
+                            <a class="btn btn-ghost btn-xs"
+                               hx-get="{% url 'timesheets:time_entry_edit' entry.pk %}"
+                               hx-target="#main-content-area"
+                               hx-push-url="true">
+                                {% icon "create-outline" %}
+                            </a>
+                            <form hx-post="{% url 'timesheets:time_entry_submit' entry.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-ghost btn-xs color-primary" title="{% trans 'Submit' %}">
+                                    {% icon "send-outline" %}
+                                </button>
+                            </form>
+                            <form hx-post="{% url 'timesheets:time_entry_delete' entry.pk %}"
+                                  hx-confirm="{% trans 'Delete this entry?' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-ghost btn-xs color-error">
+                                    {% icon "trash-outline" %}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-xs opacity-40 text-center py-2">-</div>
+                {% endif %}
+                {% if day.total_hours %}
+                <div class="text-xs text-center font-medium opacity-60 mt-1 pt-1 border-t border-base-300">
+                    {{ day.total_hours }}h
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

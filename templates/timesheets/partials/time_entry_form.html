@@ -1,0 +1,113 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">
+            {% if entry %}{% trans "Edit Time Entry" %}{% else %}{% trans "New Time Entry" %}{% endif %}
+        </h1>
+        <div class="flex gap-2">
+            <a class="btn btn-ghost btn-sm"
+               hx-get="{% url 'timesheets:index' %}"
+               hx-target="#main-content-area"
+               hx-push-url="true">
+                {% trans "Cancel" %}
+            </a>
+            <button type="submit" form="time-entry-form" class="btn btn-sm color-primary">
+                {% icon "checkmark-outline" %}
+                {% trans "Save" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form id="time-entry-form"
+          hx-post="{% if entry %}{% url 'timesheets:time_entry_edit' entry.pk %}{% else %}{% url 'timesheets:time_entry_create' %}{% endif %}">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">{% trans "Time Details" %}</h3>
+            </div>
+            <div class="card-body flex flex-col gap-4">
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Date" %} *</label>
+                    {{ form.date }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">{% trans "Start Time" %}</label>
+                        {{ form.start_time }}
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">{% trans "End Time" %}</label>
+                        {{ form.end_time }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Duration (minutes)" %} *</label>
+                    {{ form.duration_minutes }}
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Description" %} *</label>
+                    {{ form.description }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">{% trans "Project & Client" %}</h3>
+            </div>
+            <div class="card-body flex flex-col gap-4">
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Project" %}</label>
+                    {{ form.project_name }}
+                </div>
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Client" %}</label>
+                    {{ form.client_name }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">{% trans "Billing" %}</h3>
+            </div>
+            <div class="card-body flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium">{% trans "Billable" %}</label>
+                    {{ form.is_billable }}
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Hourly Rate" %}</label>
+                    {{ form.hourly_rate }}
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Rate Amount" %}</label>
+                    {{ form.rate_amount }}
+                    <p class="text-xs opacity-60 mt-1">{% trans "Override rate. Leave blank to use the selected hourly rate." %}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="callout callout-error mb-4">
+            <div class="callout-icon">{% icon "alert-circle-outline" %}</div>
+            <div class="callout-content">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <span class="callout-text">{{ field }}: {{ error }}</span>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </form>
+</div>

@@ -1,0 +1,171 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">{% trans "Reports" %}</h1>
+        <p class="text-sm mt-1 opacity-60">{% trans "Time tracking summaries and analytics" %}</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-6">
+        <div class="card-body">
+            <form class="flex flex-wrap items-end gap-4"
+                  hx-get="{% url 'timesheets:reports' %}"
+                  hx-target="#main-content-area"
+                  hx-push-url="true">
+                <div>
+                    <label class="text-xs font-medium mb-1 block">{% trans "From" %}</label>
+                    <input type="date" name="date_from" value="{{ date_from }}" class="input input-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-medium mb-1 block">{% trans "To" %}</label>
+                    <input type="date" name="date_to" value="{{ date_to }}" class="input input-sm">
+                </div>
+                <div>
+                    <label class="text-xs font-medium mb-1 block">{% trans "Employee" %}</label>
+                    <select name="employee" class="select select-sm">
+                        <option value="">{% trans "All employees" %}</option>
+                        {% for emp in employees %}
+                        <option value="{{ emp.id }}" {% if filter_employee == emp.id|stringformat:"s" %}selected{% endif %}>{{ emp.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-sm color-primary">
+                    {% icon "funnel-outline" %}
+                    {% trans "Filter" %}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                        {% icon "time-outline" css_class="text-xl text-primary" %}
+                    </div>
+                    <div>
+                        <div class="text-xs opacity-60">{% trans "Total Hours" %}</div>
+                        <div class="text-xl font-semibold">{{ total_hours }}h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-success/10 rounded-xl flex items-center justify-center">
+                        {% icon "cash-outline" css_class="text-xl text-success" %}
+                    </div>
+                    <div>
+                        <div class="text-xs opacity-60">{% trans "Billable" %}</div>
+                        <div class="text-xl font-semibold">{{ billable_hours }}h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-warning/10 rounded-xl flex items-center justify-center">
+                        {% icon "hourglass-outline" css_class="text-xl text-warning" %}
+                    </div>
+                    <div>
+                        <div class="text-xs opacity-60">{% trans "Non-billable" %}</div>
+                        <div class="text-xl font-semibold">{{ non_billable_hours }}h</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- By Employee -->
+    {% if by_employee %}
+    <div class="card mb-6">
+        <div class="card-header">
+            <h3 class="card-title">{% trans "By Employee" %}</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Employee" %}</th>
+                        <th class="text-right">{% trans "Total Hours" %}</th>
+                        <th class="text-right">{% trans "Billable Hours" %}</th>
+                        <th class="text-right">{% trans "Billable %" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in by_employee %}
+                    <tr>
+                        <td class="font-medium">{{ emp.employee_name }}</td>
+                        <td class="text-right">{{ emp.total_hours }}h</td>
+                        <td class="text-right">{{ emp.billable_hours }}h</td>
+                        <td class="text-right">
+                            {% if emp.total_minutes > 0 %}
+                                {% widthratio emp.billable_minutes emp.total_minutes 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- By Project -->
+    {% if by_project %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{% trans "By Project" %}</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Project" %}</th>
+                        <th class="text-right">{% trans "Total Hours" %}</th>
+                        <th class="text-right">{% trans "Billable Hours" %}</th>
+                        <th class="text-right">{% trans "Billable %" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for proj in by_project %}
+                    <tr>
+                        <td class="font-medium">{{ proj.project_name }}</td>
+                        <td class="text-right">{{ proj.total_hours }}h</td>
+                        <td class="text-right">{{ proj.billable_hours }}h</td>
+                        <td class="text-right">
+                            {% if proj.total_minutes > 0 %}
+                                {% widthratio proj.billable_minutes proj.total_minutes 100 %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not by_employee and not by_project %}
+    <div class="card">
+        <div class="card-body">
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-base-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    {% icon "bar-chart-outline" css_class="text-3xl opacity-40" %}
+                </div>
+                <h3 class="text-lg font-semibold mb-1">{% trans "No data" %}</h3>
+                <p class="text-sm opacity-60">{% trans "No time entries found for the selected period." %}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

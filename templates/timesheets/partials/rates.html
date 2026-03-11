@@ -1,0 +1,76 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold">{% trans "Hourly Rates" %}</h1>
+            <p class="text-sm mt-1 opacity-60">{% trans "Manage billing rates" %}</p>
+        </div>
+        <a class="btn btn-sm color-primary"
+           hx-get="{% url 'timesheets:rate_create' %}"
+           hx-target="#main-content-area"
+           hx-push-url="true">
+            {% icon "add-outline" %}
+            {% trans "New Rate" %}
+        </a>
+    </div>
+
+    {% if rates %}
+    <div class="card">
+        <div class="list list-inset">
+            {% for rate in rates %}
+            <div class="list-item">
+                <div class="list-item-start">
+                    <div class="w-10 h-10 {% if rate.is_active %}bg-success/10{% else %}bg-base-200{% endif %} rounded-lg flex items-center justify-center">
+                        {% icon "cash-outline" css_class="text-xl {% if rate.is_active %}text-success{% else %}opacity-40{% endif %}" %}
+                    </div>
+                </div>
+                <div class="list-item-content">
+                    <div class="list-item-label">
+                        {{ rate.name }}
+                        {% if rate.is_default %}
+                        <span class="badge badge-sm color-primary ml-2">{% trans "Default" %}</span>
+                        {% endif %}
+                        {% if not rate.is_active %}
+                        <span class="badge badge-sm ml-2">{% trans "Inactive" %}</span>
+                        {% endif %}
+                    </div>
+                    <div class="list-item-note">
+                        {{ rate.rate }}/h
+                        {% if rate.employee %} &middot; {{ rate.employee.name }}{% endif %}
+                    </div>
+                </div>
+                <div class="list-item-end flex gap-1">
+                    <a class="btn btn-ghost btn-xs"
+                       hx-get="{% url 'timesheets:rate_edit' rate.pk %}"
+                       hx-target="#main-content-area"
+                       hx-push-url="true"
+                       title="{% trans 'Edit' %}">
+                        {% icon "create-outline" %}
+                    </a>
+                    <form hx-post="{% url 'timesheets:rate_delete' rate.pk %}"
+                          hx-confirm="{% trans 'Delete this rate?' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-ghost btn-xs color-error" title="{% trans 'Delete' %}">
+                            {% icon "trash-outline" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="card-body">
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-base-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    {% icon "cash-outline" css_class="text-3xl opacity-40" %}
+                </div>
+                <h3 class="text-lg font-semibold mb-1">{% trans "No rates" %}</h3>
+                <p class="text-sm opacity-60">{% trans "Create hourly rates to track billing." %}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>

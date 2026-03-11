@@ -1,0 +1,61 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">{% trans "Settings" %}</h1>
+        <p class="text-sm mt-1 opacity-60">{% trans "Timesheets module configuration" %}</p>
+    </div>
+
+    <form hx-post="{% url 'timesheets:settings' %}">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">{% trans "General" %}</h3>
+            </div>
+            <div class="card-body flex flex-col gap-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium">{% trans "Default billable" %}</div>
+                        <div class="text-xs opacity-60">{% trans "New time entries are billable by default" %}</div>
+                    </div>
+                    {{ form.default_billable }}
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium">{% trans "Require approval" %}</div>
+                        <div class="text-xs opacity-60">{% trans "Time entries must be approved by a manager" %}</div>
+                    </div>
+                    {{ form.require_approval }}
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Approval period" %}</label>
+                    {{ form.approval_period }}
+                    <p class="text-xs opacity-60 mt-1">{% trans "How often timesheets are submitted for approval" %}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button type="submit" class="btn btn-sm color-primary">
+                {% icon "checkmark-outline" %}
+                {% trans "Save Settings" %}
+            </button>
+        </div>
+
+        {% if form.errors %}
+        <div class="callout callout-error mt-4">
+            <div class="callout-icon">{% icon "alert-circle-outline" %}</div>
+            <div class="callout-content">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <span class="callout-text">{{ field }}: {{ error }}</span>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </form>
+</div>

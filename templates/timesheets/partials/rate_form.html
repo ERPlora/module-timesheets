@@ -1,0 +1,71 @@
+{% load djicons i18n %}
+
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">
+            {% if rate %}{% trans "Edit Rate" %}{% else %}{% trans "New Rate" %}{% endif %}
+        </h1>
+        <div class="flex gap-2">
+            <a class="btn btn-ghost btn-sm"
+               hx-get="{% url 'timesheets:rates' %}"
+               hx-target="#main-content-area"
+               hx-push-url="true">
+                {% trans "Cancel" %}
+            </a>
+            <button type="submit" form="rate-form" class="btn btn-sm color-primary">
+                {% icon "checkmark-outline" %}
+                {% trans "Save" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form id="rate-form"
+          hx-post="{% if rate %}{% url 'timesheets:rate_edit' rate.pk %}{% else %}{% url 'timesheets:rate_create' %}{% endif %}">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+            <div class="card-body flex flex-col gap-4">
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Name" %} *</label>
+                    {{ form.name }}
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Rate per hour" %} *</label>
+                    {{ form.rate }}
+                </div>
+
+                <div>
+                    <label class="text-sm font-medium mb-1 block">{% trans "Employee" %}</label>
+                    {{ form.employee }}
+                    <p class="text-xs opacity-60 mt-1">{% trans "Leave blank for a general rate." %}</p>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium">{% trans "Default rate" %}</label>
+                    {{ form.is_default }}
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="text-sm font-medium">{% trans "Active" %}</label>
+                    {{ form.is_active }}
+                </div>
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="callout callout-error mb-4">
+            <div class="callout-icon">{% icon "alert-circle-outline" %}</div>
+            <div class="callout-content">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <span class="callout-text">{{ field }}: {{ error }}</span>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </form>
+</div>
