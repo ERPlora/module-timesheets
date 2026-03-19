@@ -3,7 +3,9 @@ from django.utils.translation import gettext_lazy as _
 MODULE_ID = "timesheets"
 MODULE_NAME = _("Timesheets")
 MODULE_ICON = 'material:work_history'
-MODULE_VERSION = '1.0.1'
+MODULE_VERSION = '1.0.2'
+MODULE_DESCRIPTION = _('Employee time tracking and billable hours')
+MODULE_AUTHOR = 'ERPlora'
 MODULE_CATEGORY = "operations"
 
 MODULE_INDUSTRIES = ["consulting", "law_firm", "tax_advisory", "design_studio", "marketing", "admin_agency", "freelancer"]
